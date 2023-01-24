@@ -81,6 +81,7 @@
 }
 
 .center::before {
+  display: none;
   background: var(--secondary-glow);
   border-radius: 50%;
   width: 480px;
@@ -89,6 +90,7 @@
 }
 
 .center::after {
+  display: none;
   background: var(--primary-glow);
   width: 240px;
   height: 180px;
@@ -120,7 +122,7 @@
   transform: translateZ(0);
   border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: 0px 2px 8px -1px #0000001a;
+  box-shadow: 0 2px 8px -1px #0000001a;
 }
 
 .thirteen::before,
