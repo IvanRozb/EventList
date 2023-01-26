@@ -1,71 +1,97 @@
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { getFilteredEvents } from "@/dummy-data";
-import { Fragment } from "react";
-import ResultsTitle from "@/components/events/results-title";
-import EventList from "@/components/events/event-list";
-import Button from "@/components/ui/button";
-import ErrorAlert from "@/components/ui/error-alert";
+import useSWR from "swr";
+
+import EventList from "../../components/events/event-list";
+import ResultsTitle from "../../components/events/results-title";
+import Button from "../../components/ui/button";
+import ErrorAlert from "../../components/ui/error-alert";
 import classes from "../../styles/Home.module.css";
 
 export default function FilteredEventsPage() {
-  const router = useRouter();
+	const [loadedEvents, setLoadedEvents] = useState();
+	const router = useRouter();
 
-  const filteredData = router.query.slug;
+	const filterData = router.query.slug;
 
-  if (!filteredData) {
-    return <p className={classes.center}>Loading...</p>;
-  }
+	const { data, error } = useSWR(
+		"https://nextjs-course-86a6c-default-rtdb.firebaseio.com/events.json",
+		(url) => fetch(url).then((res) => res.json())
+	);
 
-  const filteredYear = filteredData[0];
-  const filteredMonth = filteredData[1];
+	useEffect(() => {
+		if (data) {
+			const events = [];
 
-  const numYear = +filteredYear;
-  const numMonth = +filteredMonth;
+			for (const key in data) {
+				events.push({
+					id: key,
+					...data[key],
+				});
+			}
 
-  if (
-    isNaN(numYear) ||
-    isNaN(numMonth) ||
-    numYear < 2021 ||
-    numYear > 2030 ||
-    numMonth < 1 ||
-    numMonth > 12
-  ) {
-    return (
-      <Fragment>
-        <ErrorAlert>
-          <p>No events found for the chosen filter!</p>
-        </ErrorAlert>
-        <div className={classes.center}>
-          <Button link={"/events"}>Show All Events</Button>
-        </div>
-      </Fragment>
-    );
-  }
+			setLoadedEvents(events);
+		}
+	}, [data]);
 
-  const filteredEvents = getFilteredEvents({
-    year: numYear,
-    month: numMonth,
-  });
+	if (!loadedEvents) {
+		return <p className={classes.center}>Loading...</p>;
+	}
 
-  if (!filteredEvents || filteredEvents.length === 0) {
-    return (
-      <Fragment>
-        <ErrorAlert>
-          <p>No events found for the chosen filter!</p>
-        </ErrorAlert>
-        <div className={classes.center}>
-          <Button link={"/events"}>Show All Events</Button>
-        </div>
-      </Fragment>
-    );
-  }
+	const filteredYear = filterData[0];
+	const filteredMonth = filterData[1];
 
-  const date = new Date(numYear, numMonth - 1);
+	const numYear = +filteredYear;
+	const numMonth = +filteredMonth;
 
-  return (
-    <Fragment>
-      <ResultsTitle date={date} />
-      <EventList events={filteredEvents} />
-    </Fragment>
-  );
+	if (
+		isNaN(numYear) ||
+		isNaN(numMonth) ||
+		numYear > 2030 ||
+		numYear < 2021 ||
+		numMonth < 1 ||
+		numMonth > 12 ||
+		error
+	) {
+		return (
+			<Fragment>
+				<ErrorAlert>
+					<p>Invalid filter. Please adjust your values!</p>
+				</ErrorAlert>
+				<div className={classes.center}>
+					<Button link="/events">Show All Events</Button>
+				</div>
+			</Fragment>
+		);
+	}
+
+	const filteredEvents = loadedEvents.filter((event) => {
+		const eventDate = new Date(event.date);
+		return (
+			eventDate.getFullYear() === numYear &&
+			eventDate.getMonth() === numMonth - 1
+		);
+	});
+
+	if (!filteredEvents || filteredEvents.length === 0) {
+		return (
+			<Fragment>
+				<ErrorAlert>
+					<p>No events found for the chosen filter!</p>
+				</ErrorAlert>
+				<div className={classes.center}>
+					<Button link="/events">Show All Events</Button>
+				</div>
+			</Fragment>
+		);
+	}
+
+	const date = new Date(numYear, numMonth - 1);
+
+	return (
+		<Fragment>
+			<ResultsTitle date={date} />
+			<EventList items={filteredEvents} />
+		</Fragment>
+	);
 }
