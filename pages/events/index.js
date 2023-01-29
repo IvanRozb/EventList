@@ -4,6 +4,8 @@ import EventSearch from "@/components/events/event-search";
 import { Fragment } from "react";
 import { useRouter } from "next/router";
 import { getAllEvents } from "@/helper/api-util";
+import Head from "next/head";
+import Comments from "@/components/input/comments";
 
 export default function AllEventsPage(props) {
 	const events = props.events;
@@ -18,8 +20,13 @@ export default function AllEventsPage(props) {
 
 	return (
 		<Fragment>
+			<Head>
+				<title>Event List</title>
+				<meta name={"description"} content={"All Events"} />
+			</Head>
 			<EventSearch onSearch={findsEventsHandler} />
 			<EventList events={events} />
+			<Comments />
 		</Fragment>
 	);
 }

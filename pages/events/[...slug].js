@@ -7,6 +7,7 @@ import ResultsTitle from "../../components/events/results-title";
 import Button from "../../components/ui/button";
 import ErrorAlert from "../../components/ui/error-alert";
 import classes from "../../styles/Home.module.css";
+import Head from "next/head";
 
 export default function FilteredEventsPage() {
 	const [loadedEvents, setLoadedEvents] = useState();
@@ -34,8 +35,20 @@ export default function FilteredEventsPage() {
 		}
 	}, [data]);
 
+	const pageHeadData = (
+		<Head>
+			<title>Filtered Events</title>
+			<meta name={"description"} content={`All Filtered Events.`} />
+		</Head>
+	);
+
 	if (!loadedEvents) {
-		return <p className={classes.center}>Loading...</p>;
+		return (
+			<Fragment>
+				{pageHeadData}
+				<p className={classes.center}>Loading...</p>
+			</Fragment>
+		);
 	}
 
 	const filteredYear = filterData[0];
@@ -55,6 +68,7 @@ export default function FilteredEventsPage() {
 	) {
 		return (
 			<Fragment>
+				{pageHeadData}
 				<ErrorAlert>
 					<p>Invalid filter. Please adjust your values!</p>
 				</ErrorAlert>
@@ -76,6 +90,7 @@ export default function FilteredEventsPage() {
 	if (!filteredEvents || filteredEvents.length === 0) {
 		return (
 			<Fragment>
+				{pageHeadData}
 				<ErrorAlert>
 					<p>No events found for the chosen filter!</p>
 				</ErrorAlert>
@@ -87,11 +102,11 @@ export default function FilteredEventsPage() {
 	}
 
 	const date = new Date(numYear, numMonth - 1);
-
 	return (
 		<Fragment>
+			{pageHeadData}
 			<ResultsTitle date={date} />
-			<EventList items={filteredEvents} />
+			<EventList events={filteredEvents} />
 		</Fragment>
 	);
 }
